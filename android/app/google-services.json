@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "1005364262129",
+    "firebase_url": "https://ytory-8a291.firebaseio.com",
+    "project_id": "ytory-8a291",
+    "storage_bucket": "ytory-8a291.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1005364262129:android:8bcf238ee339bd0a092550",
+        "android_client_info": {
+          "package_name": "com.example.ytory"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1005364262129-fpsq2thjl992hb4mmqe1vk9ui4g4atef.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDrz_5rASoLRCf_mbM7Cm2cDAuXMWk-UWU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1005364262129-fpsq2thjl992hb4mmqe1vk9ui4g4atef.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
