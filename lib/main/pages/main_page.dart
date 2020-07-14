@@ -6,6 +6,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:ytory/main/login_screen.dart';
 import 'package:ytory/model/story.dart';
+import 'package:timeago/timeago.dart' as timeago;
 import 'package:ytory/model/user.dart';
 import 'package:ytory/services/auth_service.dart';
 import 'package:ytory/services/story_service.dart';
@@ -23,7 +24,20 @@ class MainPage extends StatefulWidget {
 
 class _MainPageState extends State<MainPage> {
   AuthServcies _authSerivice = AuthServcies();
+  User currentUser;
   List<double> distance = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _authSerivice.getCurrentUser().then((fuser) {
+      _authSerivice.getUserObj(fuser.uid).then((user) {
+        setState(() {
+          currentUser = User.fromDocument(user);
+        });
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,6 +54,14 @@ class _MainPageState extends State<MainPage> {
         automaticallyImplyLeading: false,
         brightness: Brightness.light,
         backgroundColor: Colors.transparent,
+        title: Text(
+          "Travel stories",
+          style: TextStyle(
+            color: Colors.black,
+            fontSize: 20,
+          ),
+        ),
+        centerTitle: true,
         elevation: 0.0,
         leading: IconButton(
           iconSize: 30.0,
@@ -85,6 +107,112 @@ class _MainPageState extends State<MainPage> {
       body: SingleChildScrollView(
         child: Column(
           children: <Widget>[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Padding(
+                  padding: const EdgeInsets.only(
+                      left: 10, right: 5, top: 5, bottom: 5),
+                  child: Container(
+                    decoration: BoxDecoration(
+                        border: Border.all(
+                          color: Colors.black.withOpacity(0.1),
+                          width: 6,
+                        ),
+                        borderRadius:
+                            BorderRadius.all(Radius.circular(height * 0.035))),
+                    child: CircleAvatar(
+                      radius: height * 0.029,
+                      backgroundImage: currentUser == null
+                          ? AssetImage('assets/profilePhoto.png')
+                          : currentUser.thumbnailUserPhotoUrl == null
+                              ? AssetImage('assets/profilePhoto.png')
+                              : NetworkImage(currentUser.thumbnailUserPhotoUrl),
+                      backgroundColor: Colors.transparent,
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 4.0,
+                    vertical: 10,
+                  ),
+                  child: Container(
+                    width: width * 0.75,
+                    height: 50,
+                    decoration: BoxDecoration(
+                        color: Color(0xffe0e0e0).withOpacity(0.4),
+                        borderRadius: BorderRadius.all(
+                          Radius.circular(65.0),
+                        ),
+                        border: Border.all(
+                          color: Colors.white,
+                          width: 2,
+                        )),
+                    child: Material(
+                      elevation: 2,
+                      color: Color(0xffe0e0e0),
+                      borderRadius: BorderRadius.all(
+                        Radius.circular(65.0),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.all(Radius.circular(30)),
+                        child: TextField(
+                          onChanged: (text) {},
+                          style: TextStyle(color: Colors.black, fontSize: 16.0),
+                          cursorColor: Colors.black,
+                          readOnly: true,
+                          textAlign: TextAlign.justify,
+                          decoration: InputDecoration(
+                            hintText: "Search",
+                            hintStyle: TextStyle(
+                              fontSize: 18,
+                            ),
+                            filled: true,
+                            fillColor: Color(0xffe0e0e0),
+                            contentPadding: EdgeInsets.symmetric(
+                                horizontal: 32.0, vertical: 14.0),
+                            suffixIcon: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Material(
+                                color: Color(0xffe0e0e0),
+                                borderRadius: BorderRadius.all(
+                                  Radius.circular(30.0),
+                                ),
+                                child: InkWell(
+                                  onTap: () {},
+                                  child: Image.asset(
+                                    'assets/icons/add-user.png',
+                                    width: 10,
+                                    height: 10,
+                                    color: Colors.black38,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            prefixIcon: Material(
+                              color: Color(0xffe0e0e0),
+                              borderRadius: BorderRadius.all(
+                                Radius.circular(30.0),
+                              ),
+                              child: InkWell(
+                                onTap: () {},
+                                child: Icon(
+                                  Icons.search,
+                                  color: Colors.black38,
+                                ),
+                              ),
+                            ),
+                            border: InputBorder.none,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            Divider(),
             StreamBuilder(
               stream: streamingStories(),
               builder: (BuildContext context, AsyncSnapshot snapshot) {
@@ -178,26 +306,31 @@ class _MainPageState extends State<MainPage> {
                                 );
                               },
                               child: Container(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(10.0),
+                                  color: Colors.white,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.grey,
+                                      offset: Offset(0.0, 1.0), //(x,y)
+                                      blurRadius: 6.0,
+                                    ),
+                                  ],
+                                ),
                                 child: Stack(
                                   children: <Widget>[
-                                    Container(
-                                      decoration: BoxDecoration(
-                                          color: Colors.transparent,
-                                          borderRadius: BorderRadius.all(
-                                              Radius.circular(10))),
-                                      child: ClipRRect(
-                                          borderRadius: BorderRadius.all(
-                                              Radius.circular(10)),
-                                          child: FancyShimmerImage(
-                                            imageUrl:
-                                                stories[index].thumbnailUrl[0],
-                                            boxFit: BoxFit.cover,
-                                            shimmerBackColor: Color(0xffe0e0e0),
-                                            shimmerBaseColor: Color(0xffe0e0e0),
-                                            shimmerHighlightColor:
-                                                Colors.grey[200],
-                                          )),
-                                    ),
+                                    ClipRRect(
+                                        borderRadius: BorderRadius.all(
+                                            Radius.circular(3)),
+                                        child: FancyShimmerImage(
+                                          imageUrl:
+                                              stories[index].thumbnailUrl[0],
+                                          boxFit: BoxFit.cover,
+                                          shimmerBackColor: Color(0xffe0e0e0),
+                                          shimmerBaseColor: Color(0xffe0e0e0),
+                                          shimmerHighlightColor:
+                                              Colors.grey[200],
+                                        )),
                                     UserInfo(
                                       userId: stories[index].userId,
                                       userImage: stories[index].thumbnailUser,
@@ -205,89 +338,127 @@ class _MainPageState extends State<MainPage> {
                                     distance.isNotEmpty
                                         ? Padding(
                                             padding: EdgeInsets.only(
-                                              left: 10,
-                                              top: height * 0.29,
-                                              bottom: 10,
-                                              right: width * 0.18,
+                                              left: 0,
+                                              top: height * 0.325,
+                                              bottom: 0,
+                                              right: 0,
                                             ),
                                             child: Container(
-                                              alignment: Alignment.bottomLeft,
                                               decoration: BoxDecoration(
                                                   color: Colors.black
-                                                      .withOpacity(0.5),
+                                                      .withOpacity(0.2),
                                                   borderRadius:
                                                       BorderRadius.all(
-                                                          Radius.circular(
-                                                              height * 0.02))),
-                                              child: Padding(
-                                                padding:
-                                                    const EdgeInsets.all(7.0),
-                                                child: ((distance[index] / 1000)
-                                                            .round()) <
-                                                        1
-                                                    ? Row(
-                                                        mainAxisAlignment:
-                                                            MainAxisAlignment
-                                                                .start,
-                                                        children: <Widget>[
-                                                          Image.asset(
-                                                            'assets/icons/from.png',
-                                                            width: 30,
-                                                            height: 30,
-                                                            color: Colors.white,
-                                                          ),
-                                                          Padding(
-                                                            padding:
-                                                                const EdgeInsets
+                                                          Radius.circular(2))),
+                                              child: Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .spaceEvenly,
+                                                children: <Widget>[
+                                                  Container(
+                                                    child: ((distance[index] /
+                                                                    1000)
+                                                                .round()) <
+                                                            1
+                                                        ? Row(
+                                                            mainAxisAlignment:
+                                                                MainAxisAlignment
+                                                                    .start,
+                                                            children: <Widget>[
+                                                              Image.asset(
+                                                                'assets/icons/from.png',
+                                                                width: 20,
+                                                                height: 20,
+                                                              ),
+                                                              Padding(
+                                                                padding:
+                                                                    const EdgeInsets
+                                                                            .only(
+                                                                        left:
+                                                                            3),
+                                                                child: Text(
+                                                                  '${(distance[index]).round()}' +
+                                                                      " m",
+                                                                  style:
+                                                                      TextStyle(
+                                                                    color: Colors
+                                                                        .white,
+                                                                    fontSize:
+                                                                        12,
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .bold,
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                            ],
+                                                          )
+                                                        : Row(
+                                                            mainAxisAlignment:
+                                                                MainAxisAlignment
+                                                                    .start,
+                                                            children: <Widget>[
+                                                              Image.asset(
+                                                                'assets/icons/from.png',
+                                                                width: 20,
+                                                                height: 20,
+                                                              ),
+                                                              Padding(
+                                                                padding:
+                                                                    const EdgeInsets
                                                                         .only(
-                                                                    left: 3),
-                                                            child: Text(
-                                                              '${(distance[index]).round()}' +
-                                                                  " m",
-                                                              style: TextStyle(
-                                                                color: Colors
-                                                                    .white,
-                                                                fontSize: 15,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .bold,
+                                                                  left: 3,
+                                                                ),
+                                                                child: Text(
+                                                                  '${(distance[index] / 1000).round()}' +
+                                                                      " km",
+                                                                  style:
+                                                                      TextStyle(
+                                                                    color: Colors
+                                                                        .white,
+                                                                    fontSize:
+                                                                        12,
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .bold,
+                                                                  ),
+                                                                ),
                                                               ),
-                                                            ),
+                                                            ],
                                                           ),
-                                                        ],
-                                                      )
-                                                    : Row(
-                                                        mainAxisAlignment:
-                                                            MainAxisAlignment
-                                                                .start,
-                                                        children: <Widget>[
-                                                          Image.asset(
-                                                            'assets/icons/from.png',
-                                                            width: 30,
-                                                            height: 30,
-                                                            color: Colors.white,
-                                                          ),
-                                                          Padding(
-                                                            padding:
-                                                                const EdgeInsets
-                                                                    .only(
-                                                              left: 3,
-                                                            ),
-                                                            child: Text(
-                                                              '${(distance[index] / 1000).round()}' +
-                                                                  " km",
-                                                              style: TextStyle(
-                                                                color: Colors
-                                                                    .white,
-                                                                fontSize: 15,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .bold,
-                                                              ),
-                                                            ),
-                                                          ),
-                                                        ],
+                                                  ),
+                                                  Row(
+                                                    children: <Widget>[
+                                                      Image.asset(
+                                                        'assets/icons/timeago.png',
+                                                        width: 15,
+                                                        height: 15,
+                                                        color: Colors.white,
                                                       ),
+                                                      Padding(
+                                                        padding:
+                                                            EdgeInsets.only(
+                                                          left: 3,
+                                                        ),
+                                                        child: Text(
+                                                          timeago.format(
+                                                                  stories[index]
+                                                                      .timestamp
+                                                                      .toDate(),
+                                                                  locale:
+                                                                      'en_short') +
+                                                              " ago",
+                                                          style: TextStyle(
+                                                            color: Colors.white,
+                                                            fontSize: 12,
+                                                            fontWeight:
+                                                                FontWeight.bold,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  )
+                                                ],
                                               ),
                                             ),
                                           )

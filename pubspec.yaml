@@ -41,6 +41,7 @@ dependencies:
   flutter_video_compress: ^0.3.7+8
   fancy_shimmer_image: ^1.0.1
   cached_network_image: ^2.2.0+1
+  timeago: ^2.0.26
   uuid: ^2.2.0
   flutter_switch:
     path: ./modified_lib/flutter_switch-0.1.0
@@ -68,6 +69,7 @@ flutter:
     - assets/profilePhoto.png
     - assets/video_dialog.jpg
     - assets/empty_story.png
+    - assets/empty_chat.jpg
     
     - assets/icons/any.png
     - assets/icons/male.png
@@ -97,6 +99,11 @@ flutter:
     - assets/icons/up.png
     - assets/icons/plane.png
     - assets/icons/gif.png
+    - assets/icons/clear.png
+    - assets/icons/search.png
+    - assets/icons/timeago.png
+    - assets/icons/chat_user.png
+    - assets/icons/add-user.png
     
     - assets/icons/like.png
     - assets/icons/like_light.png

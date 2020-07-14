@@ -8,6 +8,7 @@ import 'package:ytory/main/pages/main_page.dart';
 import 'package:ytory/main/pages/notifivation_page.dart';
 import 'package:ytory/main/pages/profile_page.dart';
 import 'package:ytory/utils/pallete.dart';
+import 'package:ytory/services/auth_service.dart';
 
 class HomeScreen extends StatefulWidget {
   HomeScreen({Key key}) : super(key: key);
@@ -18,11 +19,18 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   PageController pageController;
+  AuthServcies _authSerivice = AuthServcies();
   int pageIndex = 0;
+  String currentUserId;
 
   @override
   void initState() {
     super.initState();
+    _authSerivice.getCurrentUser().then((user) {
+      setState(() {
+        currentUserId = user.uid;
+      });
+    });
     pageController = PageController();
   }
 
@@ -88,7 +96,9 @@ class _HomeScreenState extends State<HomeScreen> {
               MainPage(),
               NotificationPage(),
               ChatPage(),
-              ProfilePage(),
+              ProfilePage(
+                profileId: currentUserId,
+              ),
             ],
             controller: pageController,
             onPageChanged: onPageChanged,

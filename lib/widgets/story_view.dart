@@ -25,6 +25,7 @@ class _StoryViewState extends State<StoryView>
   VideoPlayerController _videoPlayerController;
   int _currentIndex = 0;
   AuthServcies authServcies = AuthServcies();
+  bool videoPlayerIsInitialized = false;
 
   @override
   void initState() {
@@ -73,7 +74,9 @@ class _StoryViewState extends State<StoryView>
       _videoPlayerController?.dispose();
       _videoPlayerController = VideoPlayerController.network(mediaUrl)
         ..initialize().then((_) {
-          setState(() {});
+          setState(() {
+            videoPlayerIsInitialized = true;
+          });
           if (_videoPlayerController.value.initialized) {
             _animattionController.duration =
                 _videoPlayerController.value.duration;
@@ -95,7 +98,7 @@ class _StoryViewState extends State<StoryView>
 
   @override
   void dispose() {
-    if (_videoPlayerController.value != null) {
+    if (videoPlayerIsInitialized) {
       _videoPlayerController.dispose();
     }
 
@@ -157,9 +160,11 @@ class _StoryViewState extends State<StoryView>
                   horizontal: 1.5,
                   vertical: 10.0,
                 ),
-                child: UserInfo(
-                  thumbUser: widget.story.thumbnailUser,
-                  username: widget.story.username,
+                child: Container(
+                  child: UserInfo(
+                    thumbUser: widget.story.thumbnailUser,
+                    username: widget.story.username,
+                  ),
                 ),
               ),
             ),
@@ -175,7 +180,7 @@ class _StoryViewState extends State<StoryView>
                   child: ReactRow()),
             ),
             Positioned(
-              top: height * 0.85,
+              top: height * 0.87,
               left: 10.0,
               right: 10.0,
               child: Padding(
@@ -184,56 +189,61 @@ class _StoryViewState extends State<StoryView>
                   vertical: 20.0,
                 ),
                 child: Container(
-                  width: MediaQuery.of(context).size.width * 0.5,
-                  height: 100,
+                  width: MediaQuery.of(context).size.width * 0.9,
+                  height: 60,
+                  decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(30.0),
+                      border: Border.all(
+                        color: Colors.white,
+                      )),
                   child: Padding(
-                    padding: const EdgeInsets.all(10.0),
+                    padding: const EdgeInsets.all(5.0),
                     child: new TextField(
                       textAlign: TextAlign.center,
                       readOnly: true,
                       decoration: new InputDecoration(
                         suffixIcon: Padding(
                           padding: EdgeInsets.only(
-                            right: 5,
+                            right: 1,
                           ),
                           child: Container(
-                            padding: EdgeInsets.symmetric(vertical: 10),
+                            padding: EdgeInsets.all(8.0),
                             decoration: new BoxDecoration(
                                 color: Colors.white.withOpacity(0.8),
                                 borderRadius: new BorderRadius.only(
-                                  topLeft: const Radius.circular(60.0),
-                                  topRight: const Radius.circular(60.0),
-                                  bottomLeft: const Radius.circular(60.0),
-                                  bottomRight: const Radius.circular(60.0),
+                                  topLeft: const Radius.circular(30.0),
+                                  topRight: const Radius.circular(30.0),
+                                  bottomLeft: const Radius.circular(30.0),
+                                  bottomRight: const Radius.circular(30.0),
                                 )),
                             child: Image(
                               image: AssetImage(
                                 'assets/icons/plane.png',
                               ),
                               color: Palette.mainAppColor,
-                              height: 20,
-                              width: 20,
+                              height: 15,
+                              width: 15,
                             ),
                           ),
                         ),
                         prefixIcon: Padding(
                           padding: const EdgeInsets.only(
-                            right: 8.0,
-                            top: 4.0,
-                            bottom: 4.0,
-                            left: 4.0,
+                            right: 1.0,
+                            top: 1.0,
+                            bottom: 1.0,
+                            left: 3.0,
                           ),
                           child: Container(
                             padding: EdgeInsets.all(
                               5,
                             ),
                             decoration: new BoxDecoration(
-                                color: Colors.yellow.withOpacity(0.5),
+                                color: Palette.mainAppColor.withOpacity(0.9),
                                 borderRadius: new BorderRadius.only(
-                                  topLeft: const Radius.circular(40.0),
-                                  topRight: const Radius.circular(40.0),
-                                  bottomLeft: const Radius.circular(40.0),
-                                  bottomRight: const Radius.circular(40.0),
+                                  topLeft: const Radius.circular(30.0),
+                                  topRight: const Radius.circular(30.0),
+                                  bottomLeft: const Radius.circular(30.0),
+                                  bottomRight: const Radius.circular(30.0),
                                 )),
                             child: ClipRRect(
                               borderRadius: BorderRadius.circular(30.0),
@@ -241,8 +251,8 @@ class _StoryViewState extends State<StoryView>
                                 image: AssetImage(
                                   'assets/icons/gif.png',
                                 ),
-                                height: 40,
-                                width: 40,
+                                height: 30,
+                                width: 30,
                                 color: Colors.white,
                               ),
                             ),
@@ -339,7 +349,7 @@ class UserInfo extends StatelessWidget {
       children: <Widget>[
         Container(
           decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.5),
+              color: Colors.black.withOpacity(0.9),
               border: Border.all(
                 color: Palette.mainAppColor,
                 width: 3,
@@ -361,19 +371,16 @@ class UserInfo extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(width: 10.0),
+        SizedBox(width: 10.0),
         Expanded(
           child: username == null
               ? SizedBox.shrink()
               : Container(
-                  decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.8),
-                      borderRadius: BorderRadius.all(Radius.circular(10))),
                   child: Padding(
                     padding: const EdgeInsets.all(6.0),
                     child: Center(
                       child: Text(
-                        username == null ? "" : username + " 's stories",
+                        "",
                         textAlign: TextAlign.center,
                         style: const TextStyle(
                           color: Colors.white,
@@ -389,7 +396,10 @@ class UserInfo extends StatelessWidget {
           padding: EdgeInsets.all(8.0),
           child: Container(
             decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.7),
+                color: Colors.black.withOpacity(0.9),
+                border: Border.all(
+                  color: Colors.white,
+                ),
                 borderRadius: BorderRadius.all(Radius.circular(30))),
             child: IconButton(
               icon: const Icon(
@@ -421,6 +431,9 @@ class ReactRow extends StatelessWidget {
             child: Container(
               decoration: BoxDecoration(
                   color: Colors.black.withOpacity(0.9),
+                  border: Border.all(
+                    color: Colors.white,
+                  ),
                   borderRadius: BorderRadius.all(Radius.circular(30))),
               child: IconButton(
                 icon: Image.asset(
@@ -438,6 +451,9 @@ class ReactRow extends StatelessWidget {
             child: Container(
               decoration: BoxDecoration(
                   color: Colors.black.withOpacity(0.9),
+                  border: Border.all(
+                    color: Colors.white,
+                  ),
                   borderRadius: BorderRadius.all(Radius.circular(30))),
               child: IconButton(
                 icon: Image.asset(
@@ -455,6 +471,9 @@ class ReactRow extends StatelessWidget {
             child: Container(
               decoration: BoxDecoration(
                   color: Colors.black.withOpacity(0.9),
+                  border: Border.all(
+                    color: Colors.white,
+                  ),
                   borderRadius: BorderRadius.all(Radius.circular(30))),
               child: IconButton(
                 icon: Image.asset(
@@ -472,6 +491,9 @@ class ReactRow extends StatelessWidget {
             child: Container(
               decoration: BoxDecoration(
                   color: Colors.black.withOpacity(0.9),
+                  border: Border.all(
+                    color: Colors.white,
+                  ),
                   borderRadius: BorderRadius.all(Radius.circular(30))),
               child: IconButton(
                 icon: Image.asset(
@@ -489,6 +511,9 @@ class ReactRow extends StatelessWidget {
             child: Container(
               decoration: BoxDecoration(
                   color: Colors.black.withOpacity(0.9),
+                  border: Border.all(
+                    color: Colors.white,
+                  ),
                   borderRadius: BorderRadius.all(Radius.circular(30))),
               child: IconButton(
                 icon: Image.asset(

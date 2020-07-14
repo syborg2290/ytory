@@ -37,6 +37,9 @@ class _GalleryViewState extends State<GalleryView> {
       List<AssetEntity> assetList = await assetPath.assetList;
       assetList.forEach((element) {
         element.thumbDataWithSize(250, 250).then((value) {
+          if (!mounted) {
+            return;
+          }
           setState(() {
             mediaEn.add(element);
             allFiles.add(value);
@@ -71,6 +74,9 @@ class _GalleryViewState extends State<GalleryView> {
         btnCancelColor: Palette.mainAppColor,
         btnOkOnPress: () {
           PhotoManager.openSetting();
+          if (!mounted) {
+            return;
+          }
           setState(() {
             isLoading = false;
           });
