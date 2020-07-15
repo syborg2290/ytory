@@ -1,10 +1,17 @@
+import 'dart:convert';
+
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:ytory/model/chat_last.dart';
 import 'package:ytory/model/user.dart';
 import 'package:ytory/services/auth_service.dart';
 import 'package:ytory/services/message_service.dart';
 import 'package:ytory/utils/pallete.dart';
 import 'package:ytory/utils/shimmers/chat_list.dart';
+import 'package:ytory/widgets/chat_search.dart';
+import 'package:timeago/timeago.dart' as timeago;
+import 'package:ytory/widgets/chat_ui.dart';
 
 class ChatPage extends StatefulWidget {
   ChatPage({Key key}) : super(key: key);
@@ -15,12 +22,14 @@ class ChatPage extends StatefulWidget {
 
 class _ChatPageState extends State<ChatPage> {
   AuthServcies _authSerivice = AuthServcies();
+
   User currentUser;
   bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
+
     _authSerivice.getCurrentUser().then((fuser) {
       _authSerivice.getUserObj(fuser.uid).then((user) {
         setState(() {
@@ -35,6 +44,7 @@ class _ChatPageState extends State<ChatPage> {
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     final height = MediaQuery.of(context).size.height;
+
     SystemChrome.setSystemUIOverlayStyle(
         SystemUiOverlayStyle(statusBarColor: Colors.transparent));
 
@@ -107,10 +117,18 @@ class _ChatPageState extends State<ChatPage> {
                             borderRadius: BorderRadius.all(Radius.circular(30)),
                             child: TextField(
                               onChanged: (text) {},
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => ChatSearch()),
+                                );
+                              },
                               style: TextStyle(
                                   color: Colors.black, fontSize: 16.0),
                               cursorColor: Colors.black,
                               textAlign: TextAlign.justify,
+                              readOnly: true,
                               decoration: InputDecoration(
                                 hintText: "Search",
                                 hintStyle: TextStyle(
@@ -165,31 +183,133 @@ class _ChatPageState extends State<ChatPage> {
                         if (!snapshot.hasData) {
                           return shimmerEffectLoadingChatList(context);
                         } else {
-                          if (snapshot.data.documents.length == 0) {
-                            return Center(
-                              child: Column(
-                                children: <Widget>[
-                                  Image.asset(
-                                    'assets/empty_chat.jpg',
-                                    width: width * 0.85,
-                                    height: height * 0.7,
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Text("",
-                                        textAlign: TextAlign.center,
-                                        style: TextStyle(
-                                          color: Colors.black38,
-                                          fontSize: 36.0,
-                                          fontFamily: "Calibre-Semibold",
-                                          letterSpacing: 1.0,
-                                        )),
-                                  ),
-                                ],
-                              ),
-                            );
-                          } else {
-                            return Container();
+                          if (snapshot.data != null) {
+                            if (snapshot.data.documents.length == 0) {
+                              return Center(
+                                child: Column(
+                                  children: <Widget>[
+                                    Image.asset(
+                                      'assets/empty_chat.jpg',
+                                      width: width * 0.85,
+                                      height: height * 0.7,
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Text("",
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(
+                                            color: Colors.black38,
+                                            fontSize: 36.0,
+                                            fontFamily: "Calibre-Semibold",
+                                            letterSpacing: 1.0,
+                                          )),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            } else {
+                              List<ChatLast> list = [];
+
+                              snapshot.data.documents.forEach((doc) {
+                                ChatLast cl = ChatLast.fromDocument(doc);
+                                var senderId = list.firstWhere(
+                                    (element) =>
+                                        json.decode(element.sender)["id"] ==
+                                        json.decode(cl.sender)["id"],
+                                    orElse: () => null);
+                                var recieverId = list.firstWhere(
+                                    (element) =>
+                                        json.decode(element.receiver)["id"] ==
+                                        json.decode(cl.receiver)["id"],
+                                    orElse: () => null);
+                                if (senderId == null && recieverId == null) {
+                                  list.add(ChatLast.fromDocument(doc));
+                                }
+                              });
+
+                              return ListView.builder(
+                                  itemCount: list.length,
+                                  shrinkWrap: true,
+                                  scrollDirection: Axis.vertical,
+                                  itemBuilder: (context, index) {
+                                    User re = User.fromMap(
+                                        json.decode(list[index].receiver));
+                                    User se = User.fromMap(
+                                        json.decode(list[index].sender));
+
+                                    return Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 10,
+                                      ),
+                                      child: Container(
+                                        child: ListTile(
+                                          onTap: () {
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      ChatScreen(
+                                                        reciever:
+                                                            list[index].type ==
+                                                                    "sender"
+                                                                ? re
+                                                                : se,
+                                                      )),
+                                            );
+                                          },
+                                          selected:
+                                              list[index].isRead ? false : true,
+                                          title: GestureDetector(
+                                              child: Text(
+                                                  se.id == currentUser.id
+                                                      ? re.username
+                                                      : se.username,
+                                                  style: TextStyle(
+                                                    color: Colors.black,
+                                                    fontSize: 17,
+                                                    fontWeight: FontWeight.bold,
+                                                  ))),
+                                          leading: GestureDetector(
+                                            child: Container(
+                                              width: 50.0,
+                                              height: 50.0,
+                                              padding: const EdgeInsets.all(
+                                                  2.0), // borde width
+                                              decoration: new BoxDecoration(
+                                                color: Palette
+                                                    .mainAppColor, // border color
+                                                shape: BoxShape.circle,
+                                              ),
+                                              child: CircleAvatar(
+                                                radius: 20,
+                                                backgroundImage: se.id ==
+                                                        currentUser.id
+                                                    ? re.thumbnailUserPhotoUrl ==
+                                                            null
+                                                        ? AssetImage(
+                                                            'assets/profilePhoto.png')
+                                                        : CachedNetworkImageProvider(re
+                                                            .thumbnailUserPhotoUrl)
+                                                    : se.thumbnailUserPhotoUrl ==
+                                                            null
+                                                        ? AssetImage(
+                                                            'assets/profilePhoto.png')
+                                                        : CachedNetworkImageProvider(
+                                                            se.thumbnailUserPhotoUrl),
+                                                backgroundColor: Colors.grey,
+                                                foregroundColor:
+                                                    Palette.mainAppColor,
+                                              ),
+                                            ),
+                                          ),
+                                          trailing: Text(timeago.format(
+                                              list[index].addedOn.toDate())),
+                                          subtitle: Text(list[index].message),
+                                        ),
+                                      ),
+                                    );
+                                  });
+                            }
                           }
                         }
                       }),

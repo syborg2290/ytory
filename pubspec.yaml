@@ -42,6 +42,7 @@ dependencies:
   fancy_shimmer_image: ^1.0.1
   cached_network_image: ^2.2.0+1
   timeago: ^2.0.26
+  expand_widget: ^1.0.0+1
   uuid: ^2.2.0
   flutter_switch:
     path: ./modified_lib/flutter_switch-0.1.0

@@ -39,6 +39,40 @@ class _MainPageState extends State<MainPage> {
     });
   }
 
+  distanceCalculate(Story story) async {
+    if (story.latitude == null) {
+      distance.add(0.0);
+    } else {
+      if (await Permission.locationWhenInUse.serviceStatus.isEnabled) {
+        Position currentLocation = await Geolocator()
+            .getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+        double dist = await Geolocator().distanceBetween(
+          story.latitude,
+          story.longitude,
+          currentLocation.latitude,
+          currentLocation.longitude,
+        );
+        distance.add(dist);
+      } else {
+        PermissionStatus permissionStatus = await Permission.location.request();
+        if (permissionStatus.isGranted) {
+          Position currentLocation = await Geolocator()
+              .getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+          double dist = await Geolocator().distanceBetween(
+            story.latitude,
+            story.longitude,
+            currentLocation.latitude,
+            currentLocation.longitude,
+          );
+
+          distance.add(dist);
+        } else {
+          distance.add(0.0);
+        }
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     var width = MediaQuery.of(context).size.width;
@@ -212,7 +246,6 @@ class _MainPageState extends State<MainPage> {
                 ),
               ],
             ),
-            Divider(),
             StreamBuilder(
               stream: streamingStories(),
               builder: (BuildContext context, AsyncSnapshot snapshot) {
@@ -245,48 +278,14 @@ class _MainPageState extends State<MainPage> {
                   } else {
                     List<Story> stories = [];
 
-                    snapshot.data.documents.forEach((storyDoc) async {
+                    snapshot.data.documents.forEach((storyDoc) {
                       Story story = Story.fromDocument(storyDoc);
                       stories.add(story);
-                      if (story.latitude == null) {
-                        distance.add(0.0);
-                      } else {
-                        if (await Permission
-                            .locationWhenInUse.serviceStatus.isEnabled) {
-                          Position currentLocation = await Geolocator()
-                              .getCurrentPosition(
-                                  desiredAccuracy: LocationAccuracy.high);
-                          double dist = await Geolocator().distanceBetween(
-                            story.latitude,
-                            story.longitude,
-                            currentLocation.latitude,
-                            currentLocation.longitude,
-                          );
-                          distance.add(dist);
-                        } else {
-                          PermissionStatus permissionStatus =
-                              await Permission.location.request();
-                          if (permissionStatus.isGranted) {
-                            Position currentLocation = await Geolocator()
-                                .getCurrentPosition(
-                                    desiredAccuracy: LocationAccuracy.high);
-                            double dist = await Geolocator().distanceBetween(
-                              story.latitude,
-                              story.longitude,
-                              currentLocation.latitude,
-                              currentLocation.longitude,
-                            );
-
-                            distance.add(dist);
-                          } else {
-                            distance.add(0.0);
-                          }
-                        }
-                      }
+                      distanceCalculate(story);
                     });
 
                     return Container(
-                      margin: EdgeInsets.all(12),
+                      margin: EdgeInsets.all(25),
                       child: StaggeredGridView.countBuilder(
                           physics: ScrollPhysics(),
                           crossAxisCount: 2,
@@ -499,11 +498,11 @@ class UserInfo extends StatelessWidget {
       child: GestureDetector(
         onTap: () {},
         child: Container(
-          width: width * 0.15,
-          height: height * 0.075,
+          width: width * 0.14,
+          height: height * 0.071,
           decoration: BoxDecoration(
               color: Colors.black.withOpacity(0.5),
-              borderRadius: BorderRadius.all(Radius.circular(height * 0.04))),
+              borderRadius: BorderRadius.all(Radius.circular(height * 0.06))),
           child: Padding(
             padding: const EdgeInsets.all(4.0),
             child: Container(
@@ -513,9 +512,9 @@ class UserInfo extends StatelessWidget {
                     width: 3,
                   ),
                   borderRadius:
-                      BorderRadius.all(Radius.circular(height * 0.04))),
+                      BorderRadius.all(Radius.circular(height * 0.06))),
               child: CircleAvatar(
-                radius: height * 0.04,
+                radius: height * 0.06,
                 backgroundImage: userImage == null
                     ? AssetImage('assets/profilePhoto.png')
                     : NetworkImage(userImage),

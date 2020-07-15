@@ -1,18 +1,18 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class User {
-  final String id;
-  final String fullname;
-  final String username;
-  final String userPhotoUrl;
-  final String thumbnailUserPhotoUrl;
-  final String aboutYou;
-  final String email;
-  final bool isOnline;
-  final Timestamp recentOnline;
-  final bool active;
-  final String androidNotificationToken;
-  final Timestamp timestamp;
+  String id;
+  String fullname;
+  String username;
+  String userPhotoUrl;
+  String thumbnailUserPhotoUrl;
+  String aboutYou;
+  String email;
+  bool isOnline;
+  Timestamp recentOnline;
+  bool active;
+  String androidNotificationToken;
+  Timestamp timestamp;
 
   User(
       {this.id,
@@ -27,6 +27,28 @@ class User {
       this.active,
       this.androidNotificationToken,
       this.timestamp});
+
+  Map toMap(User user) {
+    var data = Map<String, dynamic>();
+    data['id'] = user.id;
+    data['fullname'] = user.fullname;
+    data['username'] = user.username;
+    data['userPhotoUrl'] = user.userPhotoUrl;
+    data['thumbnailUserPhotoUrl'] = user.thumbnailUserPhotoUrl;
+    data['aboutYou'] = user.aboutYou;
+    data['email'] = user.email;
+    return data;
+  }
+
+  User.fromMap(Map<String, dynamic> mapData) {
+    this.id = mapData['id'];
+    this.fullname = mapData["fullname"];
+    this.username = mapData["username"];
+    this.userPhotoUrl = mapData["userPhotoUrl"];
+    this.thumbnailUserPhotoUrl = mapData["thumbnailUserPhotoUrl"];
+    this.aboutYou = mapData["aboutYou"];
+    this.email = mapData["email"];
+  }
 
   factory User.fromDocument(DocumentSnapshot doc) {
     return User(
