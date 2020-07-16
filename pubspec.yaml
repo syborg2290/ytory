@@ -46,6 +46,8 @@ dependencies:
   uuid: ^2.2.0
   flutter_switch:
     path: ./modified_lib/flutter_switch-0.1.0
+  giphy_picker:
+    path: ./modified_lib/giphy_picker-1.0.4
 
 dev_dependencies:
   flutter_launcher_icons: ^0.7.5
@@ -105,6 +107,14 @@ flutter:
     - assets/icons/timeago.png
     - assets/icons/chat_user.png
     - assets/icons/add-user.png
+    - assets/icons/gallery.png
+    - assets/icons/chat_gif.png
+    - assets/icons/chat_image.png
+    - assets/icons/chat_video.png
+    
+    - assets/icons/upload-to-cloud.gif
+    - assets/icons/fidget-spinner.gif
+    - assets/icons/add-cloud.gif
     
     - assets/icons/like.png
     - assets/icons/like_light.png

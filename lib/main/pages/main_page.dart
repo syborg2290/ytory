@@ -52,6 +52,7 @@ class _MainPageState extends State<MainPage> {
           currentLocation.latitude,
           currentLocation.longitude,
         );
+
         distance.add(dist);
       } else {
         PermissionStatus permissionStatus = await Permission.location.request();

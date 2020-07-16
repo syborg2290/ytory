@@ -40,7 +40,7 @@ Future<File> compressVideoFile(File file) async {
     file.path,
 
     quality:
-        VideoQuality.HighestQuality, // default(VideoQuality.DefaultQuality)
+        VideoQuality.DefaultQuality, // default(VideoQuality.DefaultQuality)
     deleteOrigin: false, // default(false)
   );
 

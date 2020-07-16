@@ -304,7 +304,54 @@ class _ChatPageState extends State<ChatPage> {
                                           ),
                                           trailing: Text(timeago.format(
                                               list[index].addedOn.toDate())),
-                                          subtitle: Text(list[index].message),
+                                          subtitle: list[index].lastType ==
+                                                  "gif"
+                                              ? Align(
+                                                  alignment:
+                                                      Alignment.centerLeft,
+                                                  child: Image.asset(
+                                                    'assets/icons/gif.png',
+                                                    width: 35,
+                                                    height: 20,
+                                                  ))
+                                              : list[index].lastType == "image"
+                                                  ? Padding(
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                              2.0),
+                                                      child: Align(
+                                                          alignment: Alignment
+                                                              .centerLeft,
+                                                          child: Image.asset(
+                                                            'assets/icons/chat_image.png',
+                                                            width: 35,
+                                                            height: 20,
+                                                          )),
+                                                    )
+                                                  : list[index].lastType ==
+                                                          "video"
+                                                      ? Padding(
+                                                          padding:
+                                                              const EdgeInsets
+                                                                  .all(2.0),
+                                                          child: Align(
+                                                              alignment: Alignment
+                                                                  .centerLeft,
+                                                              child:
+                                                                  Image.asset(
+                                                                'assets/icons/chat_video.png',
+                                                                width: 35,
+                                                                height: 20,
+                                                              )),
+                                                        )
+                                                      : Padding(
+                                                          padding:
+                                                              const EdgeInsets
+                                                                  .all(2.0),
+                                                          child: Text(
+                                                              list[index]
+                                                                  .message),
+                                                        ),
                                         ),
                                       ),
                                     );

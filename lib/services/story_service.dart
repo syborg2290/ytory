@@ -70,7 +70,7 @@ Future<String> uploadVideoToStoryThumb(File video) async {
   var uuid = Uuid();
   String path = uuid.v1().toString() + new DateTime.now().toString();
   StorageUploadTask uploadTask =
-      storageRef.child("story/story_videoThumb/user_$path.mp4").putFile(video);
+      storageRef.child("story/story_videoThumb/user_$path.jpg").putFile(video);
   StorageTaskSnapshot storageSnapshot = await uploadTask.onComplete;
   String downloadURL = await storageSnapshot.ref.getDownloadURL();
   return downloadURL;
