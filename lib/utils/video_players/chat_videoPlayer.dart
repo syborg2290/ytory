@@ -27,7 +27,9 @@ class _ChatViewVideoplayerState extends State<ChatViewVideoplayer> {
         });
       })
       ..initialize().then((_) {
-        setState(() {});
+        setState(() {
+          _controller.play();
+        });
       });
   }
 

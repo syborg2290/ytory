@@ -44,6 +44,8 @@ dependencies:
   timeago: ^2.0.26
   expand_widget: ^1.0.0+1
   uuid: ^2.2.0
+  flutter_audio_query: ^0.3.4+2
+  file_picker: ^1.4.3+2
   flutter_switch:
     path: ./modified_lib/flutter_switch-0.1.0
   giphy_picker:
@@ -108,6 +110,7 @@ flutter:
     - assets/icons/chat_user.png
     - assets/icons/add-user.png
     - assets/icons/gallery.png
+    - assets/icons/menu.png
     - assets/icons/chat_gif.png
     - assets/icons/chat_image.png
     - assets/icons/chat_video.png
@@ -115,6 +118,13 @@ flutter:
     - assets/icons/upload-to-cloud.gif
     - assets/icons/fidget-spinner.gif
     - assets/icons/add-cloud.gif
+    - assets/icons/location_chat.gif
+    - assets/icons/documents_chat.gif
+    - assets/icons/audio_chat.gif
+    - assets/icons/mylocation_chat.gif
+    - assets/icons/record_chat.gif
+    - assets/icons/linear_progress.gif
+    - assets/icons/circular_progress.gif
     
     - assets/icons/like.png
     - assets/icons/like_light.png
