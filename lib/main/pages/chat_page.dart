@@ -344,14 +344,31 @@ class _ChatPageState extends State<ChatPage> {
                                                                 height: 20,
                                                               )),
                                                         )
-                                                      : Padding(
-                                                          padding:
-                                                              const EdgeInsets
-                                                                  .all(2.0),
-                                                          child: Text(
-                                                              list[index]
-                                                                  .message),
-                                                        ),
+                                                      : list[index].lastType ==
+                                                              "audio"
+                                                          ? Padding(
+                                                              padding:
+                                                                  const EdgeInsets
+                                                                      .all(2.0),
+                                                              child: Align(
+                                                                  alignment:
+                                                                      Alignment
+                                                                          .centerLeft,
+                                                                  child: Image
+                                                                      .asset(
+                                                                    'assets/icons/audio_empty.png',
+                                                                    width: 35,
+                                                                    height: 20,
+                                                                  )),
+                                                            )
+                                                          : Padding(
+                                                              padding:
+                                                                  const EdgeInsets
+                                                                      .all(2.0),
+                                                              child: Text(
+                                                                  list[index]
+                                                                      .message),
+                                                            ),
                                         ),
                                       ),
                                     );

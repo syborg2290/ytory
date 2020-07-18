@@ -1,34 +1,33 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:video_player/video_player.dart';
+import 'package:ytory/utils/progress_bars.dart';
 
-class ChatViewVideoplayer extends StatefulWidget {
-  final String video;
-
-  ChatViewVideoplayer({this.video, Key key}) : super(key: key);
+class ChatAudio extends StatefulWidget {
+  final String audio;
+  final String image;
+  final String songName;
+  ChatAudio({this.audio, this.image, this.songName, Key key}) : super(key: key);
 
   @override
-  _ChatViewVideoplayerState createState() => _ChatViewVideoplayerState();
+  _ChatAudioState createState() => _ChatAudioState();
 }
 
-class _ChatViewVideoplayerState extends State<ChatViewVideoplayer> {
+class _ChatAudioState extends State<ChatAudio> {
   VideoPlayerController _controller;
   int position = 0;
 
   @override
   void initState() {
     super.initState();
-    _controller = VideoPlayerController.network(widget.video)
+    _controller = VideoPlayerController.network(widget.audio)
       ..addListener(() {
         setState(() {
           position = _controller.value.position.inSeconds;
         });
       })
       ..initialize().then((_) {
-        setState(() {
-          _controller.play();
-        });
+        setState(() {});
       });
   }
 
@@ -52,7 +51,6 @@ class _ChatViewVideoplayerState extends State<ChatViewVideoplayer> {
     SystemChrome.setSystemUIOverlayStyle(
         SystemUiOverlayStyle(statusBarColor: Colors.transparent));
     return GestureDetector(
-      behavior: HitTestBehavior.translucent,
       onTap: () {
         if (_controller.value.isPlaying) {
           setState(() {
@@ -66,27 +64,59 @@ class _ChatViewVideoplayerState extends State<ChatViewVideoplayer> {
                 ClipRRect(
                     borderRadius: BorderRadius.circular(height * 0.03),
                     child: VideoPlayer(_controller)),
+                widget.image == null
+                    ? Image.asset(
+                        'assets/icons/audio_empty.png',
+                        height: height * 0.33,
+                        width: width * 0.5,
+                        fit: BoxFit.cover,
+                      )
+                    : Image.network(
+                        widget.image,
+                        height: height * 0.33,
+                        width: width * 0.5,
+                        fit: BoxFit.cover,
+                      ),
+                _controller.value.isBuffering
+                    ? Center(child: circularProgress())
+                    : SizedBox.shrink(),
                 _controller.value.isPlaying
-                    ? SizedBox.shrink()
-                    : GestureDetector(
-                        behavior: HitTestBehavior.translucent,
-                        onTap: () {
-                          // Navigator.push(
-                          //   context,
-                          //   MaterialPageRoute(
-                          //       builder: (context) => FullScreenStoryFile(
-                          //             media: widget.video,
-                          //             type: "video",
-                          //           )),
-                          // );
-                        },
-                        child: Center(
-                          child: GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                _controller.play();
-                              });
-                            },
+                    ? Center(
+                        child: GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              _controller.pause();
+                            });
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Container(
+                              width: width * 0.16,
+                              height: height * 0.08,
+                              decoration: BoxDecoration(
+                                  color: Colors.black,
+                                  borderRadius: BorderRadius.all(
+                                      Radius.circular(height * 0.09))),
+                              child: Center(
+                                child: Image.asset(
+                                  'assets/icons/sound.gif',
+                                  width: width * 0.25,
+                                  height: height * 0.2,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      )
+                    : Center(
+                        child: GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              _controller.play();
+                            });
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
                             child: Container(
                               width: width * 0.16,
                               height: height * 0.08,
@@ -109,6 +139,26 @@ class _ChatViewVideoplayerState extends State<ChatViewVideoplayer> {
                           ),
                         ),
                       ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Container(
+                    decoration: BoxDecoration(
+                        borderRadius:
+                            BorderRadius.all(Radius.circular(height * 0.05)),
+                        color: Colors.black.withOpacity(0.6)),
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text(
+                        widget.songName,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
                 Padding(
                   padding: EdgeInsets.only(
                     top: height * 0.5,

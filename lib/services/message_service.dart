@@ -131,6 +131,69 @@ addMessageToDbMedia(String senderId, User sender, User reciever,
   });
 }
 
+
+addMessageToDbAudios(String senderId, User sender, User reciever,
+    String reciverId, String type, String url) async {
+  User user = User();
+
+  await messageRef.document(senderId).collection(reciverId).add({
+    "id": senderId,
+    "senderId": senderId,
+    "receiverId": reciverId,
+    "url": url,
+    "message": null,
+    "type": type,
+    "timestamp": timestamp,
+  });
+
+  await messageRef.document(reciverId).collection(senderId).add({
+    "id": reciverId,
+    "senderId": senderId,
+    "receiverId": reciverId,
+    "url": url,
+    "message": null,
+    "type": type,
+    "timestamp": timestamp,
+  });
+
+  QuerySnapshot snpse =
+      await lastMessageRef.where("uid", isEqualTo: senderId).getDocuments();
+  QuerySnapshot snpre =
+      await lastMessageRef.where("uid", isEqualTo: reciverId).getDocuments();
+
+  if (snpse.documents.isNotEmpty) {
+    if (snpse.documents[0].exists) {
+      await lastMessageRef.document(snpse.documents[0].documentID).delete();
+    }
+  }
+  if (snpre.documents.isNotEmpty) {
+    if (snpre.documents[0].exists) {
+      await lastMessageRef.document(snpre.documents[0].documentID).delete();
+    }
+  }
+
+  await lastMessageRef.add({
+    "uid": senderId,
+    "sender": json.encode(user.toMap(sender)),
+    "receiver": json.encode(user.toMap(reciever)),
+    "type": "sender",
+    "lastType": type,
+    "message": null,
+    "isRead": false,
+    "addedOn": timestamp,
+  });
+  await lastMessageRef.add({
+    "uid": reciverId,
+    "sender": json.encode(user.toMap(sender)),
+    "receiver": json.encode(user.toMap(reciever)),
+    "type": "reciever",
+    "lastType": type,
+    "message": null,
+    "isRead": false,
+    "addedOn": timestamp,
+  });
+}
+
 Stream<QuerySnapshot> streamingMessages(String currentUserid) {
   return lastMessageRef
       .where("uid", isEqualTo: currentUserid)

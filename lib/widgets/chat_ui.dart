@@ -1,8 +1,9 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter_audio_query/flutter_audio_query.dart';
 import 'package:giphy_picker/giphy_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
@@ -15,6 +16,8 @@ import 'package:ytory/model/message.dart';
 import 'package:ytory/model/user.dart';
 import 'package:ytory/services/auth_service.dart';
 import 'package:ytory/services/message_service.dart';
+import 'package:ytory/utils/audio_picker.dart';
+import 'package:ytory/utils/audio_players/chat_audio.dart';
 import 'package:ytory/utils/compressMedia.dart';
 import 'package:ytory/utils/customTile.dart';
 import 'package:ytory/utils/gallery_pick_chat/media_picker_chat.dart';
@@ -72,6 +75,11 @@ class _ChatScreenState extends State<ChatScreen> {
   sendMedia(String type, String oriUrl, String thumb) async {
     await addMessageToDbMedia(currentUser.id, currentUser, widget.reciever,
         widget.reciever.id, type, oriUrl, thumb);
+  }
+
+  sendAudios(String url) async {
+    await addMessageToDbAudios(currentUser.id, currentUser, widget.reciever,
+        widget.reciever.id, "audio", url);
   }
 
   String readTimestamp(int timestamp) {
@@ -145,23 +153,105 @@ class _ChatScreenState extends State<ChatScreen> {
               Flexible(
                 child: ListView(
                   children: <Widget>[
-                    ModalTile(
-                      title: "Record audio",
-                      subtitle: "Share recorded audios",
-                      icon: 'assets/icons/record_chat.gif',
-                      onTap: () async {
-                        Navigator.pop(context);
-                      },
-                    ),
+                    // ModalTile(
+                    //   title: "Record audio",
+                    //   subtitle: "Share recorded audios",
+                    //   icon: 'assets/icons/record_chat.gif',
+                    //   onTap: () async {
+                    //     Navigator.pop(context);
+                    //   },
+                    // ),
                     ModalTile(
                       title: "Audio",
                       subtitle: "Share audio files",
                       icon: 'assets/icons/audio_chat.gif',
                       onTap: () async {
                         Navigator.pop(context);
-                        File file =
-                            await FilePicker.getFile(type: FileType.audio);
-                        if (file != null) {}
+                        List<SongInfo> songinfo = await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => AudioPicker()),
+                        );
+                        if (songinfo != null) {
+                          var uuid = Uuid();
+                          String path = uuid.v1().toString() +
+                              new DateTime.now().toString();
+
+                          songinfo.forEach((element) async {
+                            setState(() {
+                              startedUploading = true;
+                            });
+
+                            //upload audio file
+                            StorageUploadTask uploadTaskOrigImage = storageRef
+                                .child("chat/message_audio/user_$path.mp3")
+                                .putFile(File(element.filePath));
+
+                            uploadTaskOrigImage.events.listen((event) {
+                              setState(() {
+                                totalBytesTransfered = event
+                                    .snapshot.bytesTransferred
+                                    .round()
+                                    .toDouble();
+                              });
+                            });
+
+                            StorageTaskSnapshot storageSnapshotOrig =
+                                await uploadTaskOrigImage.onComplete;
+                            String origi =
+                                await storageSnapshotOrig.ref.getDownloadURL();
+
+                            // upload audio image
+                            if (element.albumArtwork != null) {
+                              StorageUploadTask uploadTaskOrigAudioImage =
+                                  storageRef
+                                      .child(
+                                          "chat/message_audio_images/user_$path.mp3")
+                                      .putFile(await getThumbnailForImage(
+                                          File(element.albumArtwork), 40));
+
+                              uploadTaskOrigImage.events.listen((event) {
+                                setState(() {
+                                  totalBytesTransfered = event
+                                      .snapshot.bytesTransferred
+                                      .round()
+                                      .toDouble();
+                                });
+                              });
+
+                              StorageTaskSnapshot
+                                  storageSnapshotOrigAudioImage =
+                                  await uploadTaskOrigAudioImage.onComplete;
+                              String origiaudioImage =
+                                  await storageSnapshotOrigAudioImage.ref
+                                      .getDownloadURL();
+
+                              var audioUrl = {
+                                "name": element.displayName,
+                                "artist": element.artist,
+                                "image": origiaudioImage,
+                                "duration": element.duration,
+                                "url": origi,
+                              };
+
+                              await sendAudios(json.encode(audioUrl));
+                            } else {
+                              var audioUrl = {
+                                "name": element.displayName,
+                                "artist": element.artist,
+                                "image": null,
+                                "duration": element.duration,
+                                "url": origi,
+                              };
+
+                              await sendAudios(json.encode(audioUrl));
+                            }
+
+                            setState(() {
+                              startedUploading = false;
+                            });
+                          });
+                        }
                       },
                     ),
                     ModalTile(
@@ -233,7 +323,9 @@ class _ChatScreenState extends State<ChatScreen> {
               ? Row(
                   children: <Widget>[
                     Text(
-                      (totalBytesTransfered / 1024.round()).toString() + " Kbs",
+                      (((totalBytesTransfered / 1024) / 1024).round())
+                              .toString() +
+                          " Mbs",
                       style: TextStyle(
                         color: Colors.black,
                         fontSize: 16,
@@ -314,7 +406,8 @@ class _ChatScreenState extends State<ChatScreen> {
                                     thumbnail: chat[index].thumbnailUrl,
                                     message: chat[index].type == "image"
                                         ? chat[index].url
-                                        : chat[index].type == "video"
+                                        : chat[index].type == "video" ||
+                                                chat[index].type == "audio"
                                             ? chat[index].url
                                             : chat[index].message,
                                     profileImg: chat[index].id == currentUser.id
@@ -399,14 +492,15 @@ class _ChatScreenState extends State<ChatScreen> {
                                   if (media["type"] == "gallery") {
                                     List<AssetEntity> mediaFromGallery =
                                         media["mediaList"];
-                                    setState(() {
-                                      startedUploading = true;
-                                    });
+
                                     var uuid = Uuid();
                                     String path = uuid.v1().toString() +
                                         new DateTime.now().toString();
 
                                     mediaFromGallery.forEach((element) async {
+                                      setState(() {
+                                        startedUploading = true;
+                                      });
                                       if (element.type.toString() ==
                                           "AssetType.image") {
                                         // 80% compressed image
@@ -848,30 +942,28 @@ class ChatBubbleUi extends StatelessWidget {
                                           );
                                         }
                                       },
-                                      child: Center(
-                                        child: Padding(
-                                          padding: EdgeInsets.only(
-                                              right: width * 0.01,
-                                              top: height * 0.15),
-                                          child: Container(
-                                            width: width * 0.16,
-                                            height: height * 0.08,
-                                            decoration: BoxDecoration(
-                                                color: Colors.black
-                                                    .withOpacity(0.8),
-                                                border: Border.all(
-                                                  color: Colors.black,
-                                                ),
-                                                borderRadius: BorderRadius.all(
-                                                    Radius.circular(
-                                                        height * 0.09))),
-                                            child: Center(
-                                              child: Image.asset(
-                                                'assets/icons/play.png',
-                                                width: width * 0.12,
-                                                height: height * 0.1,
-                                                color: Colors.white,
+                                      child: Padding(
+                                        padding: EdgeInsets.only(
+                                            left: width * 0.2,
+                                            top: height * 0.15),
+                                        child: Container(
+                                          width: width * 0.16,
+                                          height: height * 0.08,
+                                          decoration: BoxDecoration(
+                                              color:
+                                                  Colors.black.withOpacity(0.8),
+                                              border: Border.all(
+                                                color: Colors.black,
                                               ),
+                                              borderRadius: BorderRadius.all(
+                                                  Radius.circular(
+                                                      height * 0.09))),
+                                          child: Center(
+                                            child: Image.asset(
+                                              'assets/icons/play.png',
+                                              width: width * 0.12,
+                                              height: height * 0.1,
+                                              color: Colors.white,
                                             ),
                                           ),
                                         ),
@@ -880,14 +972,36 @@ class ChatBubbleUi extends StatelessWidget {
                                   ],
                                 ),
                               )
-                            : Padding(
-                                padding: const EdgeInsets.all(13.0),
-                                child: Text(
-                                  message,
-                                  style: TextStyle(
-                                      color: Colors.white, fontSize: 18),
-                                ),
-                              ),
+                            : messageType == "audio"
+                                ? Container(
+                                    height: height * 0.33,
+                                    width: width * 0.5,
+                                    decoration: BoxDecoration(
+                                        border: Border.all(
+                                          color: Colors.black,
+                                        ),
+                                        borderRadius: BorderRadius.all(
+                                            Radius.circular(height * 0.05))),
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(12.0),
+                                      child: Center(
+                                        child: ChatAudio(
+                                          audio: json.decode(message)["url"],
+                                          image: json.decode(message)["image"],
+                                          songName:
+                                              json.decode(message)["name"],
+                                        ),
+                                      ),
+                                    ),
+                                  )
+                                : Padding(
+                                    padding: const EdgeInsets.all(13.0),
+                                    child: Text(
+                                      message,
+                                      style: TextStyle(
+                                          color: Colors.white, fontSize: 18),
+                                    ),
+                                  ),
                   ),
                   Padding(
                     padding: messageType == "video"
@@ -1074,14 +1188,36 @@ class ChatBubbleUi extends StatelessWidget {
                                   ],
                                 ),
                               )
-                            : Padding(
-                                padding: const EdgeInsets.all(13.0),
-                                child: Text(
-                                  message,
-                                  style: TextStyle(
-                                      color: Colors.white, fontSize: 18),
-                                ),
-                              ),
+                            : messageType == "audio"
+                                ? Container(
+                                    height: height * 0.33,
+                                    width: width * 0.5,
+                                    decoration: BoxDecoration(
+                                        border: Border.all(
+                                          color: Colors.black,
+                                        ),
+                                        borderRadius: BorderRadius.all(
+                                            Radius.circular(height * 0.05))),
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(12.0),
+                                      child: Center(
+                                        child: ChatAudio(
+                                          audio: json.decode(message)["url"],
+                                          image: json.decode(message)["image"],
+                                          songName:
+                                              json.decode(message)["name"],
+                                        ),
+                                      ),
+                                    ),
+                                  )
+                                : Padding(
+                                    padding: const EdgeInsets.all(13.0),
+                                    child: Text(
+                                      message,
+                                      style: TextStyle(
+                                          color: Colors.white, fontSize: 18),
+                                    ),
+                                  ),
                   ),
                   Padding(
                     padding: messageType == "video"
@@ -1128,6 +1264,12 @@ class ChatBubbleUi extends StatelessWidget {
             bottomRight: Radius.circular(5),
             topLeft: Radius.circular(30),
             bottomLeft: Radius.circular(30));
+      } else if (messageType == "audio") {
+        return BorderRadius.only(
+            topRight: Radius.circular(5),
+            bottomRight: Radius.circular(5),
+            topLeft: Radius.circular(30),
+            bottomLeft: Radius.circular(30));
       }
       // end message
       else if (messageType == "video") {
@@ -1165,6 +1307,12 @@ class ChatBubbleUi extends StatelessWidget {
             bottomLeft: Radius.circular(5),
             topRight: Radius.circular(30),
             bottomRight: Radius.circular(30));
+      } else if (messageType == "audio") {
+        return BorderRadius.only(
+            topRight: Radius.circular(5),
+            bottomRight: Radius.circular(5),
+            topLeft: Radius.circular(30),
+            bottomLeft: Radius.circular(30));
       }
       // end message
       else if (messageType == "video") {
